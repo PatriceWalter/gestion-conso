@@ -780,6 +780,17 @@
         </div>
     </div>
 
+    <!-- Modal Paiement -->
+    <div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="background: #131b2e; border: 3px solid #f59e0b; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 id="paymentModalTitle" style="font-size: 1.8rem; margin: 0; color: #f59e0b;"></h2>
+                <button onclick="closePaymentModal()" style="background: #ef4444; border: none; border-radius: 8px; color: white; padding: 10px 20px; cursor: pointer; font-weight: 600;">✕ Fermer</button>
+            </div>
+            <div id="paymentModalContent"></div>
+        </div>
+    </div>
+
     <script>
         // Configuration Firebase
         const firebaseConfig = {
@@ -1661,7 +1672,7 @@
                     totalRestant += posteTotal;
                     
                     section1Html += `
-                        <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 15px 20px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
+                        <div onclick="showPaymentModal('${type}', ${poste})" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 15px 20px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <div style="font-weight: 700; font-size: 1.2rem; color: white;">${icon} Poste ${poste}</div>
@@ -1688,23 +1699,23 @@
             }
             document.getElementById('sectionRestantAPayer').innerHTML = section1Html;
             
-            // Section 2: COMMANDES PAYÉES PAR CARTON
-            const ordersCarton = servedOrders.filter(o => o.paymentType === 'carton');
+            // Section 2: TOUTES LES COMMANDES PAYÉES (carton + fin de journée payées)
+            const ordersPaid = servedOrders.filter(o => o.paymentType === 'carton' || (o.paymentType === 'fin_journee' && o.paid));
             let section2Html = '';
             
-            if (ordersCarton.length > 0) {
-                let totalCarton = 0;
+            if (ordersPaid.length > 0) {
+                let totalPaid = 0;
                 section2Html = `
                     <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 15px; padding: 25px; margin-bottom: 30px;">
                         <h2 style="color: white; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                            💳 COMMANDES PAYÉES PAR CARTON - ${label}
+                            💳 TOTAL ENCAISSÉ - ${label}
                         </h2>
                         <div style="display: grid; gap: 15px;">
                 `;
                 
                 // Grouper par poste
                 const byPoste = {};
-                ordersCarton.forEach(order => {
+                ordersPaid.forEach(order => {
                     if (!byPoste[order.poste]) byPoste[order.poste] = [];
                     byPoste[order.poste].push(order);
                 });
@@ -1713,15 +1724,23 @@
                     const orders = byPoste[poste];
                     let posteTotal = 0;
                     orders.forEach(o => posteTotal += o.total);
-                    totalCarton += posteTotal;
+                    totalPaid += posteTotal;
+                    
+                    // Déterminer le type de paiement pour l'affichage
+                    const hasCarton = orders.some(o => o.paymentType === 'carton');
+                    const hasFinJournee = orders.some(o => o.paymentType === 'fin_journee');
+                    let paymentLabel = '';
+                    if (hasCarton && hasFinJournee) paymentLabel = '💳 Carton + ⏰ Fin journée';
+                    else if (hasCarton) paymentLabel = '💳 Carton';
+                    else paymentLabel = '⏰ Fin journée';
                     
                     section2Html += `
                         <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 15px 20px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <div style="font-weight: 700; font-size: 1.2rem; color: white;">${icon} Poste ${poste}</div>
-                                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 5px;">
-                                        ${orders.map(o => o.schedule).join(', ')}
+                                    <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 5px;">
+                                        ${orders.map(o => o.schedule).join(', ')} • ${paymentLabel}
                                     </div>
                                 </div>
                                 <div style="background: white; color: #10b981; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 1.3rem;">
@@ -1736,7 +1755,7 @@
                         </div>
                         <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.3); display: flex; justify-content: space-between; align-items: center;">
                             <span style="color: white; font-size: 1.3rem; font-weight: 700;">TOTAL ENCAISSÉ :</span>
-                            <span style="background: white; color: #10b981; padding: 12px 25px; border-radius: 10px; font-weight: 800; font-size: 1.5rem;">${totalCarton.toFixed(2)} €</span>
+                            <span style="background: white; color: #10b981; padding: 12px 25px; border-radius: 10px; font-weight: 800; font-size: 1.5rem;">${totalPaid.toFixed(2)} €</span>
                         </div>
                     </div>
                 `;
@@ -1793,6 +1812,111 @@
             `;
             
             document.getElementById('sectionTotalCommandes').innerHTML = section3Html;
+        }
+
+        // Modal de paiement pour les commandes "fin de journée"
+        let currentPaymentPoste = null;
+        
+        function showPaymentModal(type, posteNum) {
+            currentPaymentPoste = {type, posteNum: parseInt(posteNum)};
+            const posteOrders = APP.allOrders.filter(o => 
+                o.type === type && 
+                o.poste === parseInt(posteNum) && 
+                o.served && 
+                o.paymentType === 'fin_journee' && 
+                !o.paid
+            );
+            
+            if (posteOrders.length === 0) {
+                showNotif('⚠️ Aucune commande à payer pour ce poste', true);
+                return;
+            }
+            
+            const icon = type === 'carpodrome' ? '🐟' : '🎣';
+            const label = type === 'carpodrome' ? 'Carpodrome' : 'Feeder';
+            
+            document.getElementById('paymentModalTitle').textContent = `💰 ${icon} ${label} poste ${posteNum}`;
+            
+            let totalAPayer = 0;
+            let contentHtml = `
+                <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #f59e0b;">📦 Détail des commandes :</h3>
+                    <div style="display: grid; gap: 15px;">
+            `;
+            
+            posteOrders.forEach(order => {
+                totalAPayer += order.total;
+                contentHtml += `
+                    <div style="background: #0a0f1e; padding: 15px; border-radius: 10px; border: 2px solid #334155;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="color: #0ea5e9; font-weight: 600;">🕐 ${order.schedule}</span>
+                            <span style="color: #94a3b8; font-size: 0.9rem;">${order.date}</span>
+                        </div>
+                        <div style="display: grid; gap: 8px;">
+                            ${order.items.map(item => `
+                                <div style="display: flex; justify-content: space-between;">
+                                    <div>
+                                        <span>${item.name} ×${item.qty}</span>
+                                        ${item.sauces ? `<span style="color: #f59e0b; font-size: 0.85rem;"> (${item.sauces})</span>` : ''}
+                                    </div>
+                                    <span style="color: #10b981; font-weight: 600;">${item.total.toFixed(2)} €</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="text-align: right; margin-top: 10px; padding-top: 10px; border-top: 1px solid #334155; color: #10b981; font-weight: 700;">
+                            Sous-total : ${order.total.toFixed(2)} €
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contentHtml += `
+                    </div>
+                </div>
+                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 1.2rem; color: white; margin-bottom: 10px;">TOTAL À ENCAISSER</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: white;">
+                        ${totalAPayer.toFixed(2)} €
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <button onclick="validatePayment()" style="padding: 20px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-size: 1.2rem;">
+                        ✅ Valider le paiement
+                    </button>
+                    <button onclick="closePaymentModal()" style="padding: 20px; background: #ef4444; border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-size: 1.2rem;">
+                        ❌ Annuler
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('paymentModalContent').innerHTML = contentHtml;
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+        
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            currentPaymentPoste = null;
+        }
+        
+        function validatePayment() {
+            if (!currentPaymentPoste) return;
+            
+            // Marquer toutes les commandes de ce poste comme payées
+            APP.allOrders.forEach(order => {
+                if (order.type === currentPaymentPoste.type && 
+                    order.poste === currentPaymentPoste.posteNum && 
+                    order.served && 
+                    order.paymentType === 'fin_journee' && 
+                    !order.paid) {
+                    order.paid = true;
+                    order.paidDate = new Date().toLocaleString('fr-FR');
+                }
+            });
+            
+            saveOrders();
+            closePaymentModal();
+            showNotif('✅ Paiement validé !');
+            showTotalType(currentPaymentPoste.type);
         }
 
         function showPosteDetail(type, posteNum) {
