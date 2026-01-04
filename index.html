@@ -114,6 +114,13 @@
             transform: translateY(-5px);
         }
 
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
         .schedule-card {
             background: #131b2e;
             border: 3px solid #334155;
@@ -575,25 +582,369 @@
             }
         }
 
-        @media (max-width: 768px) {
-            .type-grid {
-                grid-template-columns: 1fr;
-            }
-            .summary-float {
-                position: static;
-                margin-top: 30px;
-            }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
 
         h1 {
             font-size: 2.5rem;
             margin-bottom: 30px;
         }
+
+        /* ========== RESPONSIVE DESIGN ========== */
+        
+        /* TABLETTE (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .type-card {
+                padding: 40px;
+            }
+            
+            .type-icon {
+                font-size: 4rem;
+            }
+            
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 15px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card-number {
+                font-size: 2rem;
+            }
+            
+            .prep-card {
+                padding: 20px;
+            }
+            
+            .prep-poste {
+                font-size: 1.3rem;
+            }
+        }
+        
+        /* MOBILE (moins de 768px) */
+        @media (max-width: 768px) {
+            /* Navigation */
+            .nav {
+                padding: 0 10px;
+                gap: 5px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-logo {
+                font-size: 1.1rem;
+                padding: 15px 0;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .nav-btn {
+                padding: 12px 10px;
+                font-size: 0.75rem;
+                flex: 1;
+                min-width: 70px;
+                text-align: center;
+            }
+            
+            /* Schedule grid responsive */
+            .schedule-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin-bottom: 40px;
+            }
+            
+            .admin-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+            
+            /* Container */
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            /* Type cards (Carpodrome/Feeder) */
+            .type-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .type-card {
+                padding: 30px;
+            }
+            
+            .type-icon {
+                font-size: 3rem;
+            }
+            
+            .type-title {
+                font-size: 1.3rem;
+            }
+            
+            /* Schedule cards */
+            .schedule-card {
+                padding: 20px 15px;
+            }
+            
+            .schedule-card div:first-child {
+                font-size: 2rem !important;
+            }
+            
+            .schedule-card div:last-child {
+                font-size: 1.2rem !important;
+            }
+            
+            /* Grille postes/horaires */
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .card-number {
+                font-size: 1.8rem;
+            }
+            
+            .card-label {
+                font-size: 0.85rem;
+            }
+            
+            /* Page produits */
+            .products-container {
+                flex-direction: column;
+            }
+            
+            .products-list {
+                max-height: none;
+            }
+            
+            .summary-float {
+                position: static;
+                margin-top: 20px;
+                width: 100%;
+            }
+            
+            .product-card {
+                padding: 15px;
+            }
+            
+            .product-name {
+                font-size: 1.1rem;
+            }
+            
+            .product-price {
+                font-size: 1.3rem;
+            }
+            
+            .qty-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+            }
+            
+            .qty-display {
+                font-size: 1.3rem;
+                min-width: 40px;
+            }
+            
+            /* Sauces */
+            .sauces-panel {
+                padding: 15px;
+            }
+            
+            .sauce-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            .sauce-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            
+            /* Prep cards */
+            .prep-card {
+                padding: 15px;
+            }
+            
+            .prep-header {
+                flex-direction: column;
+                gap: 10px;
+                padding-right: 0 !important;
+            }
+            
+            .prep-poste {
+                font-size: 1.1rem;
+            }
+            
+            .prep-card > div:first-child {
+                position: static !important;
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .prep-card button {
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .prep-items {
+                gap: 8px;
+            }
+            
+            .prep-item {
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+            
+            /* Modals */
+            #serviceModal > div,
+            #adminModal > div,
+            #posteModal > div,
+            #paymentModal > div,
+            #adminLoginModal > div {
+                padding: 20px;
+                width: 95%;
+                max-height: 90vh;
+            }
+            
+            #serviceModal h2,
+            #adminModal h2,
+            #posteModal h2,
+            #paymentModal h2 {
+                font-size: 1.3rem;
+            }
+            
+            /* Page Commandes (Total) */
+            #total > div:first-of-type {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            #total > div:first-of-type button {
+                padding: 15px 20px !important;
+                font-size: 1.1rem !important;
+            }
+            
+            /* Sections commandes */
+            #sectionRestantAPayer h2,
+            #sectionPayeesCarton h2,
+            #sectionTotalCommandes h2 {
+                font-size: 1.2rem !important;
+            }
+        }
+        
+        /* PETIT MOBILE (moins de 480px) */
+        @media (max-width: 480px) {
+            .nav {
+                padding: 5px;
+            }
+            
+            .nav-logo {
+                font-size: 1rem;
+                padding: 10px 0;
+            }
+            
+            .nav-btn {
+                padding: 10px 6px;
+                font-size: 0.65rem;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .type-card {
+                padding: 25px;
+            }
+            
+            .type-icon {
+                font-size: 2.5rem;
+            }
+            
+            .schedule-card {
+                padding: 15px 10px;
+            }
+            
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .card-number {
+                font-size: 1.5rem;
+            }
+            
+            .card-label {
+                font-size: 0.75rem;
+            }
+            
+            .sauce-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .prep-card {
+                padding: 12px;
+            }
+            
+            .prep-poste {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- PAGE DE CONNEXION -->
+    <div id="loginPage" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0a0f1e, #1e293b); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #131b2e; border: 3px solid #0ea5e9; border-radius: 25px; padding: 50px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(14, 165, 233, 0.3);">
+            <div style="font-size: 5rem; margin-bottom: 20px;">🚚</div>
+            <h1 style="font-size: 2.2rem; margin-bottom: 10px; background: linear-gradient(135deg, #0ea5e9, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Gestion Tournées</h1>
+            <p style="color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem;">Entrez le code d'accès</p>
+            
+            <input type="password" id="loginPassword" placeholder="••••" maxlength="10" style="width: 100%; padding: 25px; background: #1e293b; border: 3px solid #334155; border-radius: 15px; color: white; font-size: 2rem; text-align: center; margin-bottom: 30px; font-family: 'Inter', sans-serif; letter-spacing: 10px;" onkeypress="if(event.key==='Enter') checkLogin()">
+            
+            <button onclick="checkLogin()" style="width: 100%; padding: 20px; background: linear-gradient(135deg, #0ea5e9, #8b5cf6); border: none; border-radius: 15px; color: white; font-weight: 700; cursor: pointer; font-size: 1.3rem; transition: all 0.3s; box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);">
+                🔓 Se connecter
+            </button>
+            
+            <div id="loginError" style="color: #ef4444; margin-top: 25px; font-weight: 600; font-size: 1.1rem; display: none;">
+                ❌ Code incorrect !
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="nav">
+    <nav class="nav" style="display: none;">
         <div class="nav-logo">🚚 Gestion Tournées</div>
         <button class="nav-btn active" onclick="goToPage('home')">🏠 Accueil</button>
         <button class="nav-btn" onclick="goToPage('preparation')">📋 À Préparer</button>
@@ -634,7 +985,7 @@
     <!-- Page 1: Accueil - Choix Horaire et Type -->
     <div id="home" class="page active">
         <h1>Sélectionnez l'horaire de tournée</h1>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 60px;">
+        <div class="schedule-grid">
             <div class="schedule-card" data-schedule="9h" onclick="selectScheduleHome('9h')">
                 <div style="font-size: 3rem; margin-bottom: 10px;">🌅</div>
                 <div style="font-size: 1.5rem; font-weight: 700;">9h</div>
@@ -2224,7 +2575,45 @@
             });
         }
 
+        // Fonction de connexion
+        function checkLogin() {
+            const password = document.getElementById('loginPassword').value;
+            
+            if (password === '911') {
+                // Connexion réussie
+                document.getElementById('loginPage').style.display = 'none';
+                document.querySelector('.nav').style.display = 'flex';
+                document.getElementById('loginError').style.display = 'none';
+                
+                // Sauvegarder la session
+                sessionStorage.setItem('loggedIn', 'true');
+            } else {
+                // Erreur
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
+                
+                // Animation shake
+                const input = document.getElementById('loginPassword');
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => input.style.animation = '', 500);
+            }
+        }
+        
+        // Vérifier si déjà connecté
+        function checkSession() {
+            if (sessionStorage.getItem('loggedIn') === 'true') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.querySelector('.nav').style.display = 'flex';
+            } else {
+                document.getElementById('loginPage').style.display = 'flex';
+                document.querySelector('.nav').style.display = 'none';
+                setTimeout(() => document.getElementById('loginPassword').focus(), 100);
+            }
+        }
+
         // Init
+        checkSession();
         loadCustomProducts();
         loadOrders();
     </script>
