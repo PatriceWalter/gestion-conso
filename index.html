@@ -1263,23 +1263,8 @@
     <div id="products" class="page">
         <h1 id="productsTitle"></h1>
 
-        <!-- Menu catégories -->
-        <div id="categoriesMenu">
-            <div class="category-grid">
-                <div class="category-card" onclick="showCategory('drinks')">
-                    <div class="category-icon">🥤</div>
-                    <div class="category-title">Boissons</div>
-                </div>
-                <div class="category-card" onclick="showCategory('sandwichs')">
-                    <div class="category-icon">🥪</div>
-                    <div class="category-title">Sandwichs</div>
-                </div>
-                <div class="category-card" onclick="showCategory('sides')">
-                    <div class="category-icon">🍟</div>
-                    <div class="category-title">Accompagnements</div>
-                </div>
-            </div>
-        </div>
+        <!-- Menu catégories (généré dynamiquement) -->
+        <div id="categoriesMenu"></div>
 
         <!-- Section Boissons -->
         <div id="drinksSection" class="product-section" style="display: none;">
@@ -1628,10 +1613,38 @@
         }
 
         function backToCategories() {
+            renderCategoriesMenu();
             document.getElementById('categoriesMenu').style.display = 'block';
             document.getElementById('drinksSection').style.display = 'none';
             document.getElementById('sandwichsSection').style.display = 'none';
             document.getElementById('sidesSection').style.display = 'none';
+        }
+
+        // Génération dynamique du menu catégories (masque les catégories vides)
+        function renderCategoriesMenu() {
+            const menu = document.getElementById('categoriesMenu');
+            const categories = [
+                {key: 'drinks', category: 'drink', icon: '🥤', label: 'Boissons'},
+                {key: 'sandwichs', category: 'sandwich', icon: '🥪', label: 'Sandwichs'},
+                {key: 'sides', category: 'side', icon: '🍟', label: 'Accompagnements'}
+            ];
+            
+            const available = categories.filter(c => DATA.products.some(p => p.category === c.category));
+            
+            if (available.length === 0) {
+                menu.innerHTML = '<div style="text-align:center; padding:40px; color:#94a3b8;"><div style="font-size:3rem; margin-bottom:15px;">📦</div><p>Aucun produit configuré</p></div>';
+                return;
+            }
+            
+            let html = '<div class="category-grid" style="grid-template-columns: repeat(' + available.length + ', 1fr);">';
+            available.forEach(c => {
+                html += '<div class="category-card" onclick="showCategory(\'' + c.key + '\')">' +
+                    '<div class="category-icon">' + c.icon + '</div>' +
+                    '<div class="category-title">' + c.label + '</div>' +
+                '</div>';
+            });
+            html += '</div>';
+            menu.innerHTML = html;
         }
 
         // Rendu produits
@@ -1643,6 +1656,8 @@
             renderProductGrid('drinksGrid', drinks, false);
             renderProductGrid('sandwichsGrid', sandwichs, true);
             renderProductGrid('sidesGrid', sides, false);
+            
+            renderCategoriesMenu();
         }
 
         function renderProductGrid(containerId, products, isSandwich) {
@@ -2696,7 +2711,10 @@
                     window.deleteOrderPending = null;
                     window.adminActionType = null;
                 } else {
-                    // Sinon ouvrir le panneau admin normal
+                    // Détacher le listener Firebase pour empêcher l'écrasement pendant l'édition
+                    database.ref('products').off('value');
+                    console.log('🔒 Listener Firebase products détaché (admin ouvert)');
+                    
                     renderAdminPanel();
                     document.getElementById('adminModal').style.display = 'flex';
                 }
@@ -2711,6 +2729,9 @@
 
         function closeAdminPanel() {
             document.getElementById('adminModal').style.display = 'none';
+            // Réattacher le listener Firebase
+            loadCustomProducts();
+            console.log('🔓 Listener Firebase products réattaché (admin fermé)');
         }
 
         function renderAdminPanel() {
@@ -2727,7 +2748,7 @@
             
             DATA.products.forEach((product, idx) => {
                 const row = document.createElement('div');
-                row.style.cssText = 'display: grid; grid-template-columns: 2fr 80px 120px 50px; gap: 10px; align-items: center; padding: 12px; background: #1e293b; border-radius: 8px; border: 2px solid #334155;';
+                row.style.cssText = 'display: grid; grid-template-columns: 2fr 80px 90px 90px 50px; gap: 10px; align-items: center; padding: 12px; background: #1e293b; border-radius: 8px; border: 2px solid #334155;';
                 
                 const nameInput = document.createElement('input');
                 nameInput.type = 'text';
@@ -2740,30 +2761,36 @@
                 priceInput.id = 'prod-price-' + idx;
                 priceInput.value = product.price;
                 priceInput.step = '0.5';
+                priceInput.min = '0';
                 priceInput.style.cssText = 'padding: 10px; background: #0a0f1e; border: 2px solid #334155; border-radius: 6px; color: white; font-size: 0.95rem; font-family: Inter, sans-serif;';
                 
                 const catSelect = document.createElement('select');
                 catSelect.id = 'prod-cat-' + idx;
                 catSelect.style.cssText = 'padding: 10px; background: #0a0f1e; border: 2px solid #334155; border-radius: 6px; color: white; font-size: 0.9rem; font-family: Inter, sans-serif;';
-                catSelect.innerHTML = `
-                    <option value="drink" ${product.category === 'drink' ? 'selected' : ''}>🥤</option>
-                    <option value="sandwich" ${product.category === 'sandwich' ? 'selected' : ''}>🥪</option>
-                    <option value="side" ${product.category === 'side' ? 'selected' : ''}>🍟</option>
-                `;
+                catSelect.innerHTML = '<option value="drink"' + (product.category === 'drink' ? ' selected' : '') + '>🥤</option>' +
+                    '<option value="sandwich"' + (product.category === 'sandwich' ? ' selected' : '') + '>🥪</option>' +
+                    '<option value="side"' + (product.category === 'side' ? ' selected' : '') + '>🍟</option>';
+                
+                // Sélecteur de sauces (visible uniquement si sandwich)
+                const saucesSelect = document.createElement('select');
+                saucesSelect.id = 'prod-sauces-' + idx;
+                saucesSelect.style.cssText = 'padding: 10px; background: #0a0f1e; border: 2px solid #334155; border-radius: 6px; color: white; font-size: 0.85rem; font-family: Inter, sans-serif;';
+                saucesSelect.innerHTML = '<option value="all"' + (product.sauces === 'all' ? ' selected' : '') + '>Toutes</option>' +
+                    '<option value="moutarde"' + (product.sauces === 'moutarde' ? ' selected' : '') + '>Moutarde</option>';
+                saucesSelect.style.display = (product.category === 'sandwich') ? 'block' : 'none';
+                
+                // Quand la catégorie change, afficher/masquer le sélecteur de sauces
+                catSelect.addEventListener('change', function() {
+                    saucesSelect.style.display = (this.value === 'sandwich') ? 'block' : 'none';
+                });
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = '🗑️';
                 deleteBtn.style.cssText = 'padding: 10px; background: #ef4444; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 1rem;';
                 deleteBtn.setAttribute('data-idx', idx);
-                deleteBtn.setAttribute('data-name', product.name);
                 deleteBtn.onclick = function() {
                     const btnIdx = parseInt(this.getAttribute('data-idx'));
-                    const btnName = this.getAttribute('data-name');
-                    console.log('DELETE PRODUCT CLICKED! idx:', btnIdx, 'product:', btnName);
-                    
-                    // ACTION DIRECTE sans confirm
                     DATA.products.splice(btnIdx, 1);
-                    console.log('Produit supprimé, il reste:', DATA.products.length, 'produits');
                     renderAdminPanel();
                     showNotif('🗑️ Produit supprimé (pensez à sauvegarder)');
                 };
@@ -2771,6 +2798,7 @@
                 row.appendChild(nameInput);
                 row.appendChild(priceInput);
                 row.appendChild(catSelect);
+                row.appendChild(saucesSelect);
                 row.appendChild(deleteBtn);
                 productsDiv.appendChild(row);
             });
@@ -2800,31 +2828,77 @@
             DATA.products.push({
                 name: 'Nouveau produit',
                 price: 2.0,
-                category: 'drink',
-                sauces: null
+                category: 'drink'
             });
             renderAdminPanel();
             showNotif('➕ Produit ajouté');
         }
 
         function saveAdminChanges() {
-            DATA.products = DATA.products.map((product, idx) => ({
-                name: document.getElementById(`prod-name-${idx}`).value,
-                price: parseFloat(document.getElementById(`prod-price-${idx}`).value),
-                category: document.getElementById(`prod-cat-${idx}`).value,
-                sauces: product.sauces // Conserver les infos sauces
-            }));
+            const updatedProducts = [];
+            let idx = 0;
+            
+            // Parcourir le DOM directement (pas DATA.products qui peut être modifié par Firebase listener)
+            while (true) {
+                const nameEl = document.getElementById('prod-name-' + idx);
+                if (!nameEl) break; // Plus d'éléments dans le DOM = fin
+                
+                const priceEl = document.getElementById('prod-price-' + idx);
+                const catEl = document.getElementById('prod-cat-' + idx);
+                const saucesEl = document.getElementById('prod-sauces-' + idx);
+                
+                if (!priceEl || !catEl) {
+                    console.error('Element prix/cat introuvable pour index:', idx);
+                    idx++;
+                    continue;
+                }
+                
+                const name = nameEl.value.trim();
+                const price = parseFloat(priceEl.value);
+                const category = catEl.value;
+                
+                if (!name) {
+                    idx++;
+                    continue; // Skip les produits sans nom
+                }
+                
+                const product = {
+                    name: name,
+                    price: isNaN(price) ? 0 : price,
+                    category: category
+                };
+                
+                // Sauces UNIQUEMENT pour les sandwichs
+                if (category === 'sandwich') {
+                    product.sauces = (saucesEl && saucesEl.value) ? saucesEl.value : 'all';
+                }
+                
+                updatedProducts.push(product);
+                idx++;
+            }
+            
+            console.log('💾 saveAdminChanges: ' + updatedProducts.length + ' produits lus depuis le DOM');
+            
+            if (updatedProducts.length === 0) {
+                showNotif('❌ Aucun produit à sauvegarder !', true);
+                return;
+            }
+            
+            // Le listener Firebase est déjà détaché (fait à l'ouverture du panel admin)
+            DATA.products = updatedProducts;
             
             // Sauvegarder sur Firebase
             database.ref('products').set(DATA.products)
                 .then(() => {
-                    console.log('💾 Produits sauvegardés sur Firebase');
-                    showNotif('✅ Produits et tarifs mis à jour !');
-                    closeAdminPanel();
+                    console.log('💾 Produits sauvegardés sur Firebase:', DATA.products.length);
+                    showNotif('✅ ' + DATA.products.length + ' produits sauvegardés !');
+                    closeAdminPanel(); // Réattache le listener via loadCustomProducts()
                 })
                 .catch((error) => {
                     console.error('❌ Erreur Firebase:', error);
-                    showNotif('❌ Erreur de sauvegarde !', true);
+                    showNotif('❌ Erreur de sauvegarde Firebase : ' + error.message, true);
+                    // Réattacher le listener même en cas d'erreur
+                    loadCustomProducts();
                 });
         }
 
@@ -2839,10 +2913,31 @@
 
         // Charger les produits personnalisés depuis Firebase
         function loadCustomProducts() {
+            // D'abord détacher tout listener existant pour éviter les doublons
+            database.ref('products').off('value');
+            
             database.ref('products').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    DATA.products = data;
+                    // Firebase peut renvoyer un objet au lieu d'un array
+                    const rawProducts = Array.isArray(data) ? data : Object.values(data);
+                    
+                    // Nettoyer et valider chaque produit
+                    DATA.products = rawProducts.filter(p => p && p.name).map(p => {
+                        const product = {
+                            name: String(p.name),
+                            price: parseFloat(p.price) || 0,
+                            category: p.category || 'drink'
+                        };
+                        // Sauces uniquement pour les sandwichs
+                        if (product.category === 'sandwich' && p.sauces) {
+                            product.sauces = p.sauces;
+                        } else if (product.category === 'sandwich') {
+                            product.sauces = 'all';
+                        }
+                        return product;
+                    });
+                    
                     console.log('📥 Produits chargés depuis Firebase:', DATA.products.length, 'produits');
                 }
             });
