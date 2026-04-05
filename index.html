@@ -1671,7 +1671,9 @@
                 card.className = 'product-card';
                 
                 let saucesHtml = '';
-                if (isSandwich) {
+                const hasSauces = isSandwich && product.sauces !== 'sans';
+                
+                if (hasSauces) {
                     const availableSauces = product.sauces === 'moutarde' 
                         ? DATA.sauces.filter(s => s.includes('Moutarde'))
                         : DATA.sauces;
@@ -1698,9 +1700,9 @@
                         <div class="product-price">${product.price.toFixed(2)} €</div>
                     </div>
                     <div class="qty-control">
-                        <button class="qty-btn" onclick="changeQty('${id}', '${product.name}', ${product.price}, ${isSandwich}, -1)">−</button>
+                        <button class="qty-btn" onclick="changeQty('${id}', '${product.name}', ${product.price}, ${hasSauces}, -1)">−</button>
                         <div class="qty-display" id="qty_${id}">0</div>
-                        <button class="qty-btn" onclick="changeQty('${id}', '${product.name}', ${product.price}, ${isSandwich}, 1)">+</button>
+                        <button class="qty-btn" onclick="changeQty('${id}', '${product.name}', ${product.price}, ${hasSauces}, 1)">+</button>
                     </div>
                     ${saucesHtml}
                 `;
@@ -2798,7 +2800,8 @@
                 saucesSelect.id = 'prod-sauces-' + idx;
                 saucesSelect.style.cssText = 'padding: 10px; background: #0a0f1e; border: 2px solid #334155; border-radius: 6px; color: white; font-size: 0.85rem; font-family: Inter, sans-serif;';
                 saucesSelect.innerHTML = '<option value="all"' + (product.sauces === 'all' ? ' selected' : '') + '>Toutes</option>' +
-                    '<option value="moutarde"' + (product.sauces === 'moutarde' ? ' selected' : '') + '>Moutarde</option>';
+                    '<option value="moutarde"' + (product.sauces === 'moutarde' ? ' selected' : '') + '>Moutarde</option>' +
+                    '<option value="sans"' + (product.sauces === 'sans' ? ' selected' : '') + '>Sans</option>';
                 saucesSelect.style.display = (product.category === 'sandwich') ? 'block' : 'none';
                 
                 // Quand la catégorie change, afficher/masquer le sélecteur de sauces
