@@ -1680,6 +1680,7 @@
                         <div class="sauces-box" id="sauces_${id}">
                             <div class="sauces-title">🌶️ Sauces</div>
                             <div class="sauces-grid" id="saucegrid_${id}">
+                                <button class="sauce-btn" onclick="toggleSauce('${id}', 'Sans')" style="border-color:#64748b;">🚫 Sans</button>
                                 ${availableSauces.map(s => `
                                     <button class="sauce-btn" onclick="toggleSauce('${id}', '${s}')">${s}</button>
                                 `).join('')}
@@ -1735,14 +1736,31 @@
         function toggleSauce(id, sauce) {
             if (!APP.order[id]) return;
             
-            const idx = APP.order[id].sauces.indexOf(sauce);
-            if (idx > -1) {
-                APP.order[id].sauces.splice(idx, 1);
-            } else {
-                APP.order[id].sauces.push(sauce);
-            }
+            const grid = document.getElementById('saucegrid_' + id);
             
-            event.target.classList.toggle('selected');
+            if (sauce === 'Sans') {
+                // "Sans" désélectionne toutes les autres sauces
+                APP.order[id].sauces = ['Sans'];
+                grid.querySelectorAll('.sauce-btn').forEach(b => b.classList.remove('selected'));
+                // Sélectionner uniquement le bouton Sans (premier bouton)
+                grid.querySelector('.sauce-btn').classList.add('selected');
+            } else {
+                // Retirer "Sans" si on sélectionne une sauce
+                const sansIdx = APP.order[id].sauces.indexOf('Sans');
+                if (sansIdx > -1) {
+                    APP.order[id].sauces.splice(sansIdx, 1);
+                    grid.querySelector('.sauce-btn').classList.remove('selected');
+                }
+                
+                // Toggle la sauce cliquée
+                const idx = APP.order[id].sauces.indexOf(sauce);
+                if (idx > -1) {
+                    APP.order[id].sauces.splice(idx, 1);
+                } else {
+                    APP.order[id].sauces.push(sauce);
+                }
+                event.target.classList.toggle('selected');
+            }
         }
 
         // Ajouter sandwich
@@ -1753,12 +1771,16 @@
             }
             
             if (APP.order[id].sauces.length === 0) {
-                showNotif('⚠️ Choisissez au moins une sauce !', true);
+                showNotif('⚠️ Choisissez une sauce ou "Sans" !', true);
                 return;
             }
             
+            // Si "Sans" est sélectionné, on enregistre un tableau vide (rien ne s'affiche)
+            const isSans = APP.order[id].sauces.length === 1 && APP.order[id].sauces[0] === 'Sans';
+            const finalSauces = isSans ? [] : [...APP.order[id].sauces];
+            
             // Créer un ID unique basé sur le nom + sauces
-            const saucesKey = APP.order[id].sauces.sort().join('_');
+            const saucesKey = isSans ? 'sans' : finalSauces.sort().join('_');
             const uniqueId = id + '_' + saucesKey;
             
             // Si cette combinaison existe déjà, ajouter la quantité
@@ -1771,7 +1793,7 @@
                     price: price,
                     qty: APP.order[id].tempQty,
                     tempQty: 0,
-                    sauces: [...APP.order[id].sauces] // Copie du tableau
+                    sauces: finalSauces
                 };
             }
             
