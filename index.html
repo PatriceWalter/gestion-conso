@@ -1305,6 +1305,14 @@
     <!-- Page 5: À Préparer -->
     <div id="preparation" class="page">
         <h1>📋 À Préparer</h1>
+        <div class="type-buttons" id="prepTypeButtons">
+            <button onclick="showPrepType('carpodrome')" class="type-btn carpodrome" id="prepBtnCarpodrome">
+                🐟 Carpodrome
+            </button>
+            <button onclick="showPrepType('feeder')" class="type-btn feeder" id="prepBtnFeeder">
+                🎣 Feeder
+            </button>
+        </div>
         <div id="prepGrid" class="prep-grid"></div>
     </div>
 
@@ -1947,17 +1955,36 @@
         }
 
         // Rendu préparation
+        let currentPrepType = 'carpodrome';
+        
+        function showPrepType(type) {
+            currentPrepType = type;
+            
+            // Highlight bouton actif
+            document.getElementById('prepBtnCarpodrome').style.opacity = (type === 'carpodrome') ? '1' : '0.5';
+            document.getElementById('prepBtnFeeder').style.opacity = (type === 'feeder') ? '1' : '0.5';
+            
+            renderPreparation();
+        }
+        
         function renderPreparation() {
             const container = document.getElementById('prepGrid');
             
-            // Filtrer les commandes non servies
-            const unservedOrders = APP.allOrders.filter(o => !o.served);
+            // Highlight bouton actif
+            document.getElementById('prepBtnCarpodrome').style.opacity = (currentPrepType === 'carpodrome') ? '1' : '0.5';
+            document.getElementById('prepBtnFeeder').style.opacity = (currentPrepType === 'feeder') ? '1' : '0.5';
+            
+            // Filtrer les commandes non servies DU TYPE SÉLECTIONNÉ
+            const unservedOrders = APP.allOrders.filter(o => !o.served && o.type === currentPrepType);
+            
+            const typeIcon = currentPrepType === 'carpodrome' ? '🐟' : '🎣';
+            const typeLabel = currentPrepType === 'carpodrome' ? 'Carpodrome' : 'Feeder';
             
             if (unservedOrders.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 100px; color: #94a3b8;">
                         <div style="font-size: 5rem; margin-bottom: 20px;">📋</div>
-                        <h2>Aucune commande à préparer</h2>
+                        <h2>Aucune commande ${typeLabel} à préparer</h2>
                     </div>
                 `;
                 return;
@@ -1967,7 +1994,6 @@
             const productTotals = {};
             unservedOrders.forEach(order => {
                 order.items.forEach(item => {
-                    // Créer une clé unique : nom + sauces
                     let key = item.name;
                     if (item.sauces && item.sauces.trim()) {
                         key = item.name + ' (' + item.sauces + ')';
@@ -1980,11 +2006,11 @@
                 });
             });
             
-            // CRÉER L'ENCADRÉ RÉCAPITULATIF
+            // ENCADRÉ RÉCAPITULATIF
             let summaryHtml = `
                 <div style="background: linear-gradient(135deg, #0ea5e9, #8b5cf6); border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 8px 30px rgba(14, 165, 233, 0.3);">
                     <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: white; display: flex; align-items: center; gap: 10px;">
-                        📦 <span>TOTAL À PRÉPARER</span>
+                        📦 <span>TOTAL À PRÉPARER - ${typeIcon} ${typeLabel}</span>
                     </h2>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
             `;
